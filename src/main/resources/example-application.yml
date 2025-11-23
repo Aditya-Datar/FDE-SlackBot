@@ -1,0 +1,90 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: fde-slackbot
+
+  # Neon PostgreSQL Configuration
+  datasource:
+    url: jdbc:postgresql://YOUR-PROJECT.neon.tech:5432/fde_slackbot?sslmode=require
+    username: YOUR-USERNAME
+    password: YOUR-PASSWORD
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+
+  # JPA/Hibernate Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  # WebSocket Configuration
+  websocket:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+
+  # Async Task Execution
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 100
+
+# Slack Configuration
+slack:
+  bot:
+    token: xoxb-YOUR-BOT-TOKEN
+  signing:
+    secret: YOUR-SIGNING-SECRET
+
+# OpenAI Configuration
+openai:
+  api:
+    key: sk-YOUR-OPENAI-KEY
+  model: gpt-4o-mini
+  embedding:
+    model: text-embedding-3-small
+  max:
+    tokens: 1000
+  temperature: 0.3
+
+# Grouping Algorithm Configuration
+grouping:
+  similarity:
+    threshold: 0.85
+  time:
+    window:
+      hours: 24
+
+# Logging
+logging:
+  level:
+    com.nixo.fde.slackbot: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Management Endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
