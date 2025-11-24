@@ -8,7 +8,7 @@ const API_BASE = 'http://localhost:8080/api';
 export const useWebSocket = () => {
   const [tickets, setTickets] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const [isLoading, setIsLoading] = useState(true);
   const [newTicketIds, setNewTicketIds] = useState(new Set());
   const [updatedTicketIds, setUpdatedTicketIds] = useState(new Set());
   const clientRef = useRef(null);
@@ -25,11 +25,11 @@ export const useWebSocket = () => {
         const transformedTickets = response.data.map(ticket => ({
           id: ticket.id.toString(),
           title: ticket.title,
-          type: ticket.category,
+          type: ticket.category, // Backend sends 'category', Frontend expects 'type' usually, make sure this matches your TicketCard
           timestamp: ticket.updatedAt,
-          customerName: 'Customer',
-          messageCount: ticket.messageCount || 0,
-          messages: []
+          customerName: ticket.customerName || 'Customer',
+          messageCount: ticket.messageCount || (ticket.messages ? ticket.messages.length : 0),
+          messages: ticket.messages || []
         }));
         
         setTickets(transformedTickets);
@@ -76,20 +76,21 @@ export const useWebSocket = () => {
   const handleWebSocketMessage = (msg) => {
     const { type, data } = msg;
 
+    // Transform incoming WS data to match Frontend shape
     const transformedTicket = {
       id: data.id.toString(),
       title: data.title,
       type: data.category,
       timestamp: data.updatedAt,
-      customerName: 'Customer',
-      messageCount: data.messageCount || 0,
-      messages: []
+      customerName: data.customerName || 'Customer',
+      messageCount: data.messageCount || (data.messages ? data.messages.length : 0),
+      messages: data.messages || [] // Ensure messages are passed for the live view
     };
 
     setTickets((prev) => {
       if (type === 'TICKET_CREATED') {
+        // Handle New Ticket Badge
         setNewTicketIds(ids => new Set(ids).add(transformedTicket.id));
-        
         setTimeout(() => {
           setNewTicketIds(ids => {
             const newSet = new Set(ids);
@@ -100,10 +101,15 @@ export const useWebSocket = () => {
 
         showNotification('New Ticket Created', transformedTicket.title);
         
+        // Prevent duplicate add if it already exists
+        if (prev.some(t => t.id === transformedTicket.id)) return prev;
+
+        // Add to TOP
         return [transformedTicket, ...prev];
+
       } else if (type === 'TICKET_UPDATED') {
+        // Handle Updated Badge
         setUpdatedTicketIds(ids => new Set(ids).add(transformedTicket.id));
-        
         setTimeout(() => {
           setUpdatedTicketIds(ids => {
             const newSet = new Set(ids);
@@ -114,9 +120,12 @@ export const useWebSocket = () => {
 
         showNotification('Ticket Updated', transformedTicket.title);
         
-        return prev.map((t) => 
-          t.id === transformedTicket.id ? transformedTicket : t
-        );
+        // --- KEY CHANGE: SORTING LOGIC ---
+        // 1. Remove the old version of this ticket
+        const others = prev.filter((t) => t.id !== transformedTicket.id);
+        
+        // 2. Add the updated version to the VERY TOP
+        return [transformedTicket, ...others];
       }
       return prev;
     });
@@ -139,6 +148,6 @@ export const useWebSocket = () => {
       isUpdated: updatedTicketIds.has(t.id)
     })), 
     isConnected,
-    isLoading // Export loading state
+    isLoading 
   };
 };

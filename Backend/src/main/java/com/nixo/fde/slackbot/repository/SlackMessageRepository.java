@@ -26,4 +26,8 @@ public interface SlackMessageRepository extends JpaRepository<SlackMessage, Long
 
     @Query("SELECT COUNT(m) FROM SlackMessage m WHERE m.ticket.id = :ticketId")
     int countByTicketId(@Param("ticketId") Long ticketId);
+
+    @Query("SELECT m FROM SlackMessage m JOIN FETCH m.ticket WHERE m.slackTimestamp = :ts")
+    List<SlackMessage> findBySlackTimestampWithTicket(@Param("ts") String ts);
+    
 }

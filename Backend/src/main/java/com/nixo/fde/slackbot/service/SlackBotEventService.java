@@ -9,15 +9,11 @@ import com.nixo.fde.slackbot.payload.SlackEventsDetailsDto;
 import com.nixo.fde.slackbot.payload.SlackTicketDto;
 import com.nixo.fde.slackbot.repository.SlackMessageRepository;
 import com.nixo.fde.slackbot.utils.ApplicationUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.List;
 
 @Slf4j
@@ -28,99 +24,85 @@ public class SlackBotEventService {
     private final MessageGroupingService groupingService;
     private final SlackMessageRepository messageRepository;
     private final WebSocketNotificationService notificationService;
-    private final Gson gson = new Gson();
 
     @Async
-    @Transactional
     public void processEventAsync(SlackEventDto eventDto) {
         try {
-            log.info("Processing event asynchronously: eventId={}", eventDto.getEventId());
-
             SlackEventsDetailsDto event = eventDto.getEvent();
 
-            // Check for duplicate
+            // 1. Fast Deduplication (Database Index Check)
             if (messageRepository.existsBySlackTimestamp(event.getTimestamp())) {
-                log.info("Message already processed: {}", event.getTimestamp());
                 return;
             }
 
-            log.info("Message received - User: {}, Channel: {}, Text: {}",
-                    event.getUser(),
-                    event.getChannel(),
-                    event.getText()
-            );
+            if(event.getText() == null){
+                return;
+            }
 
-            // Step 1: Classify message with AI service (Gemini or OpenAI)
-            ClassificationResultDto classification =
-                    aiService.classifyMessage(event.getText());
+            ClassificationResultDto classification = null;
+            String threadTs = event.getThreadTs();
 
-            log.info("Classification result - Relevant: {}, Category: {}, Confidence: {}",
-                    classification.isRelevant(),
-                    classification.getCategory(),
-                    classification.getConfidence()
-            );
+            // --- OPTIMIZATION 1: THREAD CONTEXT CHECK (Skip Classification AI) ---
+            if (threadTs != null && !threadTs.isEmpty()) {
+                // Check if this thread already belongs to a ticket
+                List<SlackMessage> parentMessages = messageRepository.findBySlackTimestampWithTicket(threadTs);
 
-            // Step 2: If irrelevant, ignore
+                if (!parentMessages.isEmpty()) {
+                    SlackTicket existingTicket = parentMessages.get(0).getTicket();
+                    log.info("Optimization: Inheriting context from Ticket {}. Skipping Classification AI.", existingTicket.getId());
+
+                    // Manually construct 'Relevant' result
+                    classification = new ClassificationResultDto(
+                            true,                           // Force Relevant
+                            existingTicket.getCategory(),   // Inherit Category
+                            existingTicket.getTitle(),      // Inherit Title
+                            1.0                             // Max Confidence
+                    );
+                }
+            }
+            // ---------------------------------------------------------------------
+
+            // 2. Classify (Only if we didn't find a thread match above)
+            if (classification == null) {
+                String normalizedText = ApplicationUtils.normalizeText(event.getText());
+                classification = aiService.classifyMessage(normalizedText);
+            }
+
             if (!classification.isRelevant()) {
-                log.info("Message classified as irrelevant, skipping");
+                log.info("Irrelevant Message: {}", event.getText());
                 return;
             }
 
-            // Step 3: Generate embedding for grouping
-            List<Double> embedding = aiService.generateEmbedding(event.getText());
-            log.info("Generated embedding with {} dimensions", embedding.size());
-
-            // Step 4: Find or create ticket (grouping logic)
-            SlackTicket ticket = groupingService.findOrCreateTicket(
+            // 3. Find or Create Ticket
+            // We pass the whole aiService so groupingService can use it lazily if needed
+            SlackTicket ticket = groupingService.processMessage(
                     event.getText(),
                     event.getThreadTs(),
-                    classification.getCategory(),
-                    classification.getTitle(),
-                    embedding
+                    classification,
+                    aiService,
+                    event.getUser(),
+                    event.getChannel(),
+                    event.getChannelType(),
+                    event.getTimestamp()
             );
 
-            // Step 5: Create and save message
-            SlackMessage message = SlackMessage.builder()
-                    .ticket(ticket)
-                    .slackText(event.getText())
-                    .slackUser(event.getUser())
-                    .channel(event.getChannel())
-                    .slackTimestamp(event.getTimestamp())
-                    .threadTs(event.getThreadTs())
-                    .channelType(event.getChannelType())
-                    .embedding(gson.toJson(embedding))
-                    .slackMessageTime(parseSlackTimestamp(event.getTimestamp()))
-                    .createdAt(ApplicationUtils.getCurrentUtcDateTime())
-                    .build();
+            // 4. Notify Frontend
+            if (ticket != null) {
+                // Determine if it's new or updated based on message count
+                int messageCount = ticket.getMessages().size();
+                SlackTicketDto ticketDto = SlackTicketDto.fromEntity(ticket);
 
-            messageRepository.save(message);
-
-            log.info("Message saved successfully to ticket: {}", ticket.getId());
-            // Send WebSocket notification to frontend
-            SlackTicketDto ticketDto = SlackTicketDto.fromEntity(ticket);
-            int messageCount = messageRepository.countByTicketId(ticket.getId());
-
-            if (messageCount == 1) {
-                // New ticket created
-                notificationService.notifyTicketCreated(ticketDto);
+                if (messageCount <= 1) {
+                    notificationService.notifyTicketCreated(ticketDto);
+                } else {
+                    notificationService.notifyTicketUpdated(ticketDto);
+                }
             } else {
-                // Existing ticket updated
-                notificationService.notifyTicketUpdated(ticketDto);
+                log.info("Silent update (duplicate content). No notification sent.");
             }
 
         } catch (Exception e) {
             log.error("Error processing event: {}", e.getMessage(), e);
-        }
-    }
-
-    private LocalDateTime parseSlackTimestamp(String slackTs) {
-        try {
-            String[] parts = slackTs.split("\\.");
-            long seconds = Long.parseLong(parts[0]);
-            return LocalDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneOffset.UTC);
-        } catch (Exception e) {
-            log.warn("Error parsing slack timestamp: {}, using current time", slackTs);
-            return LocalDateTime.now();
         }
     }
 }

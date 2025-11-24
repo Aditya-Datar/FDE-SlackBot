@@ -11,4 +11,5 @@ public class FdeSlackbotApplication {
     public static void main(String[] args) {
         SpringApplication.run(FdeSlackbotApplication.class, args);
     }
+
 }

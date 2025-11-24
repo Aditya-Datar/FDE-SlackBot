@@ -34,7 +34,7 @@ public class SlackTicket {
     @Builder.Default
     private String status = "OPEN";
 
-    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private List<SlackMessage> messages = new ArrayList<>();
 

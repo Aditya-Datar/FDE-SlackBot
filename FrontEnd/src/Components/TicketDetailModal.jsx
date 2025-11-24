@@ -318,12 +318,12 @@ export const TicketDetailModal = ({ ticket, onClose }) => {
                                                     </div>
                                                 </div>
                                             ) : ticketDetails?.messages && ticketDetails.messages.length > 0 ? (
-                                                ticketDetails.messages.map((message, idx) => (
+                                                [...ticketDetails.messages].reverse().map((message, idx) => (
                                                     <MessageBubble
                                                         key={message.id || idx}
                                                         message={message}
-                                                        isFirst={idx === 0}
-                                                        isLast={idx === ticketDetails.messages.length - 1}
+                                                        isFirst={idx === ticketDetails.messages.length - 1}
+                                                        isLast={idx === 0}
                                                     />
                                                 ))
                                             ) : (
