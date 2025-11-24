@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -28,10 +29,13 @@ public class GeminiAIService implements AIServiceInterface {
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     @Override
-    public ClassificationResultDto classifyMessage(String messageText) {
+    @Cacheable(value="classifications", unless = "#result == null || #result.confidence == 0.0")
+    public ClassificationResultDto  classifyMessage(String messageText) {
         try {
+            // SAFETY FIX: Truncate large inputs to avoid crashes
+            String safeText = messageText.length() > 5000 ? messageText.substring(0, 5000) : messageText;
             log.info("Using Gemini for classification");
-            String prompt = buildClassificationPrompt(messageText);
+            String prompt = buildClassificationPrompt(safeText); // Use safeText
             String response = callGemini(prompt);
             return parseClassificationResponse(response);
         } catch (Exception e) {
@@ -41,10 +45,14 @@ public class GeminiAIService implements AIServiceInterface {
     }
 
     @Override
+    @Cacheable("embeddings")
     public List<Double> generateEmbedding(String text) {
         try {
             log.debug("Generating embedding with Gemini");
-            return callGeminiEmbedding(text);
+            // SAFETY FIX: Remove newlines (improves AI accuracy) and truncate
+            String cleanText = text.replace("\n", " ");
+            String safeText = cleanText.length() > 8000 ? cleanText.substring(0, 8000) : cleanText;
+            return callGeminiEmbedding(safeText);
         } catch (Exception e) {
             log.error("Error generating embedding with Gemini: {}", e.getMessage(), e);
             return new ArrayList<>();

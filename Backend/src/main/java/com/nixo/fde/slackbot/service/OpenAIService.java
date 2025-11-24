@@ -32,7 +32,9 @@ public class OpenAIService implements AIServiceInterface {
     public ClassificationResultDto classifyMessage(String messageText) {
         try {
             log.info("Using OpenAI for classification");
-            String prompt = buildClassificationPrompt(messageText);
+            // SAFETY FIX: Truncate large inputs to avoid crashes
+            String safeText = messageText.length() > 5000 ? messageText.substring(0, 5000) : messageText;
+            String prompt = buildClassificationPrompt(safeText); // Use safeText
             String response = callOpenAI(prompt);
             return parseClassificationResponse(response);
         } catch (Exception e) {
@@ -45,7 +47,10 @@ public class OpenAIService implements AIServiceInterface {
     public List<Double> generateEmbedding(String text) {
         try {
             log.debug("Generating embedding with OpenAI");
-            return callOpenAIEmbedding(text);
+            // SAFETY FIX: Remove newlines (improves AI accuracy) and truncate
+            String cleanText = text.replace("\n", " ");
+            String safeText = cleanText.length() > 8000 ? cleanText.substring(0, 8000) : cleanText;
+            return callOpenAIEmbedding(safeText);
         } catch (Exception e) {
             log.error("Error generating embedding with OpenAI: {}", e.getMessage(), e);
             return new ArrayList<>();
