@@ -25,5 +25,5 @@ public interface SlackMessageRepository extends JpaRepository<SlackMessage, Long
     List<SlackMessage> findRecentMessagesWithEmbeddings(@Param("since") LocalDateTime since);
 
     @Query("SELECT COUNT(m) FROM SlackMessage m WHERE m.ticket.id = :ticketId")
-    long countByTicketId(@Param("ticketId") Long ticketId);
+    int countByTicketId(@Param("ticketId") Long ticketId);
 }

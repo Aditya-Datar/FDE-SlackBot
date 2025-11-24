@@ -27,6 +27,7 @@ public class SlackBotEventService {
     private final AIServiceInterface aiService;
     private final MessageGroupingService groupingService;
     private final SlackMessageRepository messageRepository;
+    private final WebSocketNotificationService notificationService;
     private final Gson gson = new Gson();
 
     @Async
@@ -95,8 +96,17 @@ public class SlackBotEventService {
             messageRepository.save(message);
 
             log.info("Message saved successfully to ticket: {}", ticket.getId());
+            // Send WebSocket notification to frontend
+            SlackTicketDto ticketDto = SlackTicketDto.fromEntity(ticket);
+            int messageCount = messageRepository.countByTicketId(ticket.getId());
 
-            // TODO: Task 5 - Send WebSocket notification to frontend
+            if (messageCount == 1) {
+                // New ticket created
+                notificationService.notifyTicketCreated(ticketDto);
+            } else {
+                // Existing ticket updated
+                notificationService.notifyTicketUpdated(ticketDto);
+            }
 
         } catch (Exception e) {
             log.error("Error processing event: {}", e.getMessage(), e);
