@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface SlackMessageRepository extends JpaRepository<SlackMessage, Long> {
 
-    Optional<SlackMessage> findBySlackTimestamp(String slackTimestamp);
+    List<SlackMessage> findBySlackTimestamp(String slackTimestamp);
 
     boolean existsBySlackTimestamp(String slackTimestamp);
 

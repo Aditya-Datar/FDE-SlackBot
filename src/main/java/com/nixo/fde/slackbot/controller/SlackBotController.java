@@ -33,10 +33,10 @@ public class SlackBotController {
         // Handle event callback
         if ("event_callback".equals(eventDto.getType())) {
             // Ignore bot messages to prevent loops
-            if (eventDto.getEvent().getBotId() != null) {
-                log.debug("Ignoring bot message");
-                return ResponseEntity.ok().build();
-            }
+//            if (eventDto.getEvent().getBotId() != null) {
+//                log.debug("Ignoring bot message");
+//                return ResponseEntity.ok().build();
+//            }
 
             // Process the event asynchronously
             slackBotEventService.processEventAsync(eventDto);

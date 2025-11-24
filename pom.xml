@@ -13,9 +13,9 @@
     </parent>
 
     <groupId>com.nixo</groupId>
-    <artifactId>fde-slackbot</artifactId>
+    <artifactId>nixo-fde-slackbot</artifactId>
     <version>1.0.0</version>
-    <name>FDE Slackbot</name>
+    <name>Nixo FDE Slackbot</name>
     <description>Slackbot for Forward Deployed Engineers</description>
 
     <properties>
@@ -48,13 +48,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- H2 Database (for local testing) -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
         <!-- Lombok (reduces boilerplate) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -68,11 +61,24 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- OpenAI Java Client -->
+        <!-- Google Gemini AI -->
         <dependency>
-            <groupId>com.theokanning.openai-gpt3-java</groupId>
-            <artifactId>service</artifactId>
-            <version>0.18.2</version>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-aiplatform</artifactId>
+            <version>3.38.0</version>
+        </dependency>
+
+        <!-- OkHttp for API calls -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
+
+        <!-- Gson for JSON parsing -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
 
         <!-- Apache HttpClient (for Slack API calls) -->

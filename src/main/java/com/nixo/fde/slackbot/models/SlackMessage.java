@@ -30,15 +30,15 @@ public class SlackMessage {
     private SlackTicket ticket;
 
     @Column(nullable = false, length = 4000)
-    private String text;
+    private String slackText;
 
     @Column(nullable = false, length = 50)
-    private String user;
+    private String slackUser;
 
     @Column(nullable = false, length = 50)
     private String channel;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(length = 50)
     private String slackTimestamp;
 
     @Column(length = 50)
