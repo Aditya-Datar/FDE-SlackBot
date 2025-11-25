@@ -41,11 +41,16 @@ function App() {
       <header className="fixed top-0 w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-1.5 rounded-md">
-              <Activity className="text-white" size={20} />
+            <div className="bp-1.5 rounded-md">
+              {/* <Activity className="text-white" size={20} /> */}
+              <img
+                src="/nixo.png"
+                alt="Nixo Logo"
+                className="h-8 w-auto object-contain rounded-md"
+              />
             </div>
             <h1 className="font-bold text-xl tracking-tight text-white">
-              Nixo <span className="text-slate-500 font-normal">FDE Command</span>
+              Nixo <span className="text-slate-500 font-normal">FDE Dashboard</span>
             </h1>
           </div>
 
