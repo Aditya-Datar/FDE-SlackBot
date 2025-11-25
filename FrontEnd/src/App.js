@@ -182,7 +182,7 @@ function App() {
         {/* Tickets Feed */}
         <div className="space-y-2">
           <h2 className="text-slate-400 text-sm uppercase font-semibold tracking-wider mb-4 flex items-center gap-2">
-            Incoming Stream
+            Current Updates
             {filter !== "ALL" && !isLoading && (
               <span className="text-indigo-400 bg-indigo-400/10 border border-indigo-400/20 px-2 py-0.5 rounded text-[10px] font-medium">
                 FILTER ACTIVE
