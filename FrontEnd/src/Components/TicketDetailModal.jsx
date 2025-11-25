@@ -387,7 +387,6 @@ const MessageBubble = ({ message, isFirst, isLast }) => {
                                 </p>
                             </div>
                             <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-800/50 px-2 py-1 rounded border border-slate-700/50">
-                                <Hash size={11} />
                                 {message.channel}
                             </div>
                         </div>

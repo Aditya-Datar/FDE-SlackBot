@@ -23,6 +23,8 @@ public class SlackTicketDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<SlackMessageDto> messages;
+    private String customerName;
+    private String channel;
 
     public static SlackTicketDto fromEntity(SlackTicket ticket) {
         return SlackTicketDto.builder()

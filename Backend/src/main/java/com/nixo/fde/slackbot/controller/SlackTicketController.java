@@ -1,9 +1,11 @@
 package com.nixo.fde.slackbot.controller;
 
 import com.nixo.fde.slackbot.models.SlackTicket;
+import com.nixo.fde.slackbot.payload.SlackMessageDto;
 import com.nixo.fde.slackbot.payload.SlackTicketDto;
 import com.nixo.fde.slackbot.payload.SlackTicketStatusDto;
 import com.nixo.fde.slackbot.repository.SlackTicketRepository;
+import com.nixo.fde.slackbot.service.SlackApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SlackTicketController {
     private final SlackTicketRepository slackTicketRepository;
+    private final SlackApiService slackApiService;
 
     @GetMapping
     public ResponseEntity<List<SlackTicketDto>> getAllTickets() {
@@ -38,7 +41,40 @@ public class SlackTicketController {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(SlackTicketDto.fromEntityWithMessages(ticket));
+        SlackTicketDto ticketDto = SlackTicketDto.fromEntityWithMessages(ticket);
+
+        // Resolve Metadata if messages exist
+        if (ticket.getMessages() != null && !ticket.getMessages().isEmpty()) {
+
+            // 1. Resolve Customer Name (from first message)
+            String userId = ticket.getMessages().get(0).getSlackUser();
+            String customerName = slackApiService.getUserRealName(userId);
+            ticketDto.setCustomerName(customerName);
+
+            // 2. Resolve Channel Name
+            // We look at the first message to find where this ticket started
+            String channelId = ticket.getMessages().get(0).getChannel();
+            String prettyChannelName = slackApiService.getChannelName(channelId);
+            ticketDto.setChannel(prettyChannelName);
+
+            // 3. Resolve User Names AND Channel Names in Conversation History
+            for (SlackMessageDto messageDto : ticketDto.getMessages()) {
+
+                // A. Resolve User ID to Name
+                if (messageDto.getUser() != null && messageDto.getUser().startsWith("U")) {
+                    String realName = slackApiService.getUserRealName(messageDto.getUser());
+                    messageDto.setUser(realName);
+                }
+
+                // B. Resolve Channel ID to Name
+                if (messageDto.getChannel() != null && messageDto.getChannel().startsWith("C")) {
+                    String prettyChannel = slackApiService.getChannelName(messageDto.getChannel());
+                    messageDto.setChannel(prettyChannel);
+                }
+            }
+        }
+
+        return ResponseEntity.ok(ticketDto);
     }
 
     @GetMapping("/status/{status}")
