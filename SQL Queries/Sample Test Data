@@ -1,0 +1,25 @@
+-- ============================================
+-- Sample Data for Testing
+-- ============================================
+
+-- Insert sample tickets
+INSERT INTO slack_tickets (title, category, status) VALUES
+('Login button not working on mobile', 'BUG', 'OPEN'),
+('Add CSV export feature', 'FEATURE_REQUEST', 'OPEN'),
+('How to reset password', 'SUPPORT', 'CLOSED');
+
+-- Insert sample messages
+INSERT INTO slack_messages (
+    ticket_id,
+    slackText,
+    slackUser,
+    channel,
+    slack_timestamp,
+    thread_ts,
+    channel_type,
+    slack_message_time
+) VALUES
+(1, 'The login button doesn''t work on mobile', 'U12345', 'C67890', '1234567890.123456', NULL, 'channel', CURRENT_TIMESTAMP),
+(1, 'I tried on both iOS and Android', 'U12345', 'C67890', '1234567891.123456', '1234567890.123456', 'channel', CURRENT_TIMESTAMP),
+(2, 'Can you add export to CSV?', 'U12346', 'C67890', '1234567892.123456', NULL, 'channel', CURRENT_TIMESTAMP),
+(3, 'How do I reset my password?', 'U12347', 'C67890', '1234567893.123456', NULL, 'channel', CURRENT_TIMESTAMP);

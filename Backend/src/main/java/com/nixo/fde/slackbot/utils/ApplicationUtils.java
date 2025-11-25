@@ -19,7 +19,6 @@ public class ApplicationUtils {
         return LocalDateTime.now(ZoneOffset.UTC);
     }
 
-    // In GroupingService.java
     public static double getSimilarityThreshold(String category) {
         return switch (category) {
             case "BUG" -> 0.70;              // More lenient for bugs
