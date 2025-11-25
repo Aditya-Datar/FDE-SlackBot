@@ -4,6 +4,7 @@ A minimal end to end system that listens to customer conversations in Slack, cla
 
 This project demonstrates the complete realtime data flow from Slack into the backend, through the database, and into a live updating frontend UI. It includes intelligent relevance filtering and grouping.
 
+![FDE_Dashboard](FrontEnd/public/FDE_Dashboard.png)
 ---
 
 # **1. Features**
@@ -310,3 +311,10 @@ WRITEUP.md
 
 * Check WebSocket logs in browser console.
 * Check backend logs for event ingestion.
+
+
+
+### Working Snippets
+![FDE_Dashboard](FrontEnd/public/FDE_Dashboard.png)
+
+![FDE_Dashboard](FrontEnd/public/FDE_Dashboard_Ticket_Details.png)
