@@ -1,4 +1,4 @@
-# **Nixo FDE Mission Control: Intelligent Slackbot Dashboard**
+# **SupportSync: Intelligent Slackbot Dashboard**
 
 A minimal end to end system that listens to customer conversations in Slack, classifies relevant messages, groups related issues, and displays them in a realtime dashboard for a Forward-Deployed Engineer (FDE).
 
@@ -85,9 +85,118 @@ Runs fully on localhost with ngrok acting as the public callback URL for Slack e
 | Slack Workspace | One FDE user and one customer user |
 | Slack App       | With correct scopes                |
 
+
+
 ---
 
-# **4. Environment Setup**
+# **4. 🐳 Running with Docker (Recommended)**
+
+The easiest way to run the full stack (Database + Backend + Frontend) is using Docker Compose.
+
+### **1. Create the Docker Compose File**
+
+Create a `docker-compose.yml` file in the project root:
+
+```yaml
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: supportsync-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: supportsync
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./Backend
+    container_name: supportsync-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/supportsync
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
+      SLACK_SIGNING_SECRET: ${SLACK_SIGNING_SECRET}
+      AI_PROVIDER: openai
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      - postgres
+
+  frontend:
+    build: ./Frontend
+    container_name: supportsync-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+
+```
+
+### **2. Create a `.env` file**
+
+Create a `.env` file in the root directory to store your secrets (do not commit this file):
+
+```env
+SLACK_BOT_TOKEN=xoxb-your-token-here
+SLACK_SIGNING_SECRET=your-secret-here
+OPENAI_API_KEY=sk-your-api-key-here
+
+```
+
+### **3. Build and Run**
+
+```bash
+docker-compose up --build
+
+```
+
+* **Frontend:** `http://localhost:3000`
+* **Backend:** `http://localhost:8080`
+
+### **Action Item: Dockerfiles**
+
+To make the Docker section work, you must create a `Dockerfile` in both the Backend and Frontend folders.
+
+**Backend/Dockerfile**
+
+```dockerfile
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
+COPY .mvn/ .mvn
+COPY mvnw pom.xml ./
+RUN ./mvnw dependency:go-offline
+COPY src ./src
+CMD ["./mvnw", "spring-boot:run"]
+
+```
+
+**Frontend/Dockerfile**
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm install
+COPY . .
+CMD ["npm", "run", "dev", "--", "--host"]
+
+```
+
+---
+
+## **5. Manual Local Setup**
+
+If you prefer running without Docker:
 
 ## Backend Configuration
 

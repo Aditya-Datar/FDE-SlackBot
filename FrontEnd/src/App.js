@@ -42,15 +42,10 @@ function App() {
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bp-1.5 rounded-md">
-              {/* <Activity className="text-white" size={20} /> */}
-              <img
-                src="/nixo.png"
-                alt="Nixo Logo"
-                className="h-8 w-auto object-contain rounded-md"
-              />
+              <Activity className="text-cyan-400 animate-pulse" size={35}/>
             </div>
             <h1 className="font-bold text-xl tracking-tight text-white">
-              Nixo <span className="text-slate-500 font-normal">FDE Dashboard</span>
+              SupportSync <span className="text-slate-500 font-normal">FDE Dashboard</span>
             </h1>
           </div>
 
