@@ -12,10 +12,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.nixo</groupId>
-    <artifactId>nixo-fde-slackbot</artifactId>
+    <groupId>com.supportsync</groupId>
+    <artifactId>supportsync-fde-slackbot</artifactId>
     <version>1.0.0</version>
-    <name>Nixo FDE Slackbot</name>
+    <name>SupportSync FDE Slackbot</name>
     <description>Slackbot for Forward Deployed Engineers</description>
 
     <properties>

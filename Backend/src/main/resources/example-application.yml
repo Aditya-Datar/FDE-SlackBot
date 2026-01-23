@@ -73,7 +73,7 @@ grouping:
 # Logging
 logging:
   level:
-    com.nixo.fde.slackbot: DEBUG
+    com.supportsync.slackbot: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
   pattern:
