@@ -1,0 +1,41 @@
+package com.supportsync.payload;
+
+import com.supportsync.models.SlackMessage;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SlackMessageDto {
+    private Long id;
+    private Long ticketId;
+    private String text;
+    private String user;
+    private String channel;
+    private String slackTimestamp;
+    private String threadTs;
+    private String channelType;
+    private LocalDateTime createdAt;
+    private LocalDateTime slackMessageTime;
+
+    public static SlackMessageDto fromEntity(SlackMessage message) {
+        return SlackMessageDto.builder()
+                .id(message.getId())
+                .ticketId(message.getTicket().getId())
+                .text(message.getSlackText())
+                .user(message.getSlackUser())
+                .channel(message.getChannel())
+                .slackTimestamp(message.getSlackTimestamp())
+                .threadTs(message.getThreadTs())
+                .channelType(message.getChannelType())
+                .createdAt(message.getCreatedAt())
+                .slackMessageTime(message.getSlackMessageTime())
+                .build();
+    }
+}
